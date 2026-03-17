@@ -1,0 +1,98 @@
+# Install PySpark
+!pip install pyspark
+
+# =========================
+# ETL using Python (Pandas)
+# =========================
+import pandas as pd
+
+df = pd.read_csv("/content/customers.csv")
+
+df.drop_duplicates(inplace=True)
+df["city"] = df["city"].fillna("Unknown")
+df["customer_name"] = df["customer_name"].str.upper()
+
+def spend_category(spend):
+    if spend < 80000:
+        return "Low"
+    elif spend <= 120000:
+        return "Medium"
+    else:
+        return "High"
+
+df["spend_category"] = df["annual_spend"].apply(spend_category)
+
+etl_output = df.groupby(["city", "spend_category"]).agg(
+    total_customers=("customer_id", "count"),
+    avg_spend=("annual_spend", "mean")
+).reset_index()
+
+etl_output.to_csv("/content/etl_analytics_ready.csv", index=False)
+
+print("Pandas ETL Output:")
+print(etl_output)
+
+
+# =========================
+# ETL using Apache Spark
+# =========================
+from pyspark.sql import SparkSession
+from pyspark.sql.functions import col, upper, when, avg, count
+
+spark = SparkSession.builder.appName("ETL Pipeline").getOrCreate()
+
+spark_df = spark.read.csv("/content/customers.csv", header=True, inferSchema=True)
+
+spark_df = spark_df.dropDuplicates()
+spark_df = spark_df.fillna({"city": "Unknown"})
+spark_df = spark_df.withColumn("customer_name", upper(col("customer_name")))
+
+spark_df = spark_df.withColumn(
+    "spend_category",
+    when(col("annual_spend") < 80000, "Low")
+    .when((col("annual_spend") >= 80000) & (col("annual_spend") <= 120000), "Medium")
+    .otherwise("High")
+)
+
+spark_etl_output = spark_df.groupBy("city", "spend_category").agg(
+    count("customer_id").alias("total_customers"),
+    avg("annual_spend").alias("avg_spend")
+)
+
+spark_etl_output.write.mode("overwrite").parquet("/content/etl_spark_output")
+
+print("Spark ETL Output:")
+spark_etl_output.show()
+
+
+# =========================
+# ELT using Apache Spark
+# =========================
+
+# Extract + Load
+raw_df = spark.read.csv("/content/customers.csv", header=True, inferSchema=True)
+raw_df.write.mode("overwrite").parquet("/content/raw_customers")
+
+# Transform after loading
+df = spark.read.parquet("/content/raw_customers")
+
+df = df.dropDuplicates()
+df = df.fillna({"city": "Unknown"})
+df = df.withColumn("customer_name", upper(col("customer_name")))
+
+df = df.withColumn(
+    "spend_category",
+    when(col("annual_spend") < 80000, "Low")
+    .when(col("annual_spend") <= 120000, "Medium")
+    .otherwise("High")
+)
+
+elt_output = df.groupBy("city", "spend_category").agg(
+    count("customer_id").alias("total_customers"),
+    avg("annual_spend").alias("avg_spend")
+)
+
+elt_output.write.mode("overwrite").parquet("/content/elt_analytics_ready")
+
+print("Spark ELT Output:")
+elt_output.show()
