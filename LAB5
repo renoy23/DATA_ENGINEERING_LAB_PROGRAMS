@@ -1,0 +1,46 @@
+import pandas as pd
+import numpy as np
+import matplotlib.pyplot as plt
+
+path = "/student_feature_preparation_dataset.csv"
+df = pd.read_csv(path)
+
+plt.figure(figsize=(6,4))
+plt.scatter(df["StudyHours"], df["Marks"])
+plt.xlabel("Study Hours")
+plt.ylabel("Marks")
+plt.title("Raw Data: Study Hours vs Marks")
+plt.show()
+
+plt.figure(figsize=(6,4))
+plt.boxplot(df["StudyHours"])
+plt.title("Study Hours Before Outlier Handling")
+plt.show()
+
+Q1 = df["StudyHours"].quantile(0.25)
+Q3 = df["StudyHours"].quantile(0.75)
+IQR = Q3 - Q1
+lower = Q1 - 1.5 * IQR
+upper = Q3 + 1.5 * IQR
+
+df["StudyHours"] = np.where(df["StudyHours"] < lower, lower, df["StudyHours"])
+df["StudyHours"] = np.where(df["StudyHours"] > upper, upper, df["StudyHours"])
+
+plt.figure(figsize=(6,4))
+plt.boxplot(df["StudyHours"])
+plt.title("Study Hours After Outlier Handling")
+plt.show()
+
+df["Study_Hours_MinMax"] = (df["StudyHours"] - df["StudyHours"].min()) / (df["StudyHours"].max() - df["StudyHours"].min())
+
+plt.figure(figsize=(6,4))
+plt.hist(df["Study_Hours_MinMax"], bins=10)
+plt.title("Min-Max Normalized Study Hours")
+plt.show()
+
+df["Study_Hours_Z"] = (df["StudyHours"] - df["StudyHours"].mean()) / df["StudyHours"].std()
+
+plt.figure(figsize=(6,4))
+plt.hist(df["Study_Hours_Z"], bins=10)
+plt.title("Z-Score Standardized Study Hours")
+plt.show()
