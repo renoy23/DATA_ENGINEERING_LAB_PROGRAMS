@@ -1,0 +1,50 @@
+# Install PySpark
+!pip install pyspark
+
+# Imports
+from pyspark.sql import SparkSession
+import re
+import matplotlib.pyplot as plt
+
+# Initialize Spark
+spark = SparkSession.builder.appName("AdvancedWordCount").master("local[*]").getOrCreate()
+
+# Read file
+textRDD = spark.sparkContext.textFile("/content/product_review.txt")
+
+# Convert to lowercase
+textRDD = textRDD.map(lambda line: line.lower())
+
+# Remove special characters
+textRDD = textRDD.map(lambda line: re.sub(r"[^\w\s]", "", line))
+
+# Split into words
+wordsRDD = textRDD.flatMap(lambda line: line.split())
+
+# Remove stopwords
+stopwords = ["is", "and", "on", "the", "a", "an", "of"]
+filteredWords = wordsRDD.filter(lambda word: word not in stopwords)
+
+# Map words to (word,1)
+wordPairs = filteredWords.map(lambda word: (word, 1))
+
+# Reduce to get counts
+wordCounts = wordPairs.reduceByKey(lambda x, y: x + y)
+
+# Sort by frequency (descending)
+sortedCounts = wordCounts.sortBy(lambda x: x[1], ascending=False)
+
+# Take top 10 words
+topWords = sortedCounts.take(10)
+
+# Separate words and counts
+words = [w[0] for w in topWords]
+counts = [w[1] for w in topWords]
+
+# Plot
+plt.figure()
+plt.bar(words, counts)
+plt.xlabel("Words")
+plt.ylabel("Frequency")
+plt.title("Top 10 Most Frequent Words")
+plt.show()
