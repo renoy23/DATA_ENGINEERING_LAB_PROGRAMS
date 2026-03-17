@@ -1,0 +1,31 @@
+CREATE DATABASE demo_db;
+
+CREATE EXTERNAL TABLE demo_db.customers (
+    customer_id INT,
+    customer_name STRING,
+    city STRING
+)
+ROW FORMAT SERDE 'org.apache.hadoop.hive.serde2.OpenCSVSerde'
+WITH SERDEPROPERTIES (
+    "separatorChar" = ",",
+    "quoteChar" = "\""
+)
+LOCATION 's3://your-bucket-name/customers/';
+
+SELECT * FROM demo_db.customers;
+
+SELECT city, COUNT(*) AS total_customers
+FROM demo_db.customers
+GROUP BY city;
+
+CREATE TABLE customers_dw (
+    customer_id INT,
+    customer_name VARCHAR(50),
+    city VARCHAR(50)
+);
+
+COPY customers_dw
+FROM 's3://your-bucket-name/customers/customer.csv'
+IAM_ROLE 'arn:aws:iam::account-id:role/RedshiftRole'
+CSV
+IGNOREHEADER 1;
