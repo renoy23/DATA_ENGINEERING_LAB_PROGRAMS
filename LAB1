@@ -1,1 +1,27 @@
-{"nbformat":4,"nbformat_minor":0,"metadata":{"colab":{"provenance":[],"authorship_tag":"ABX9TyPpKipZjPG8kBOik0GnJjGu"},"kernelspec":{"name":"python3","display_name":"Python 3"},"language_info":{"name":"python"}},"cells":[{"cell_type":"code","execution_count":null,"metadata":{"id":"3yY3oelRM8cm"},"outputs":[],"source":["import pandas as pd\n","import json\n","#Ingesting Structure data in .xslx and .csv format\n","df_excel = pd.read_excel(\"/content/drive/MyDrive/FDE LAB/LAB 1/Play_tennis_dataset.xlsx\")\n","print(\"\\nExcel File Head:\")\n","print(df_excel.head())\n","\n","df_csv = pd.read_csv(\"/content/drive/MyDrive/FDE LAB/LAB 1/Housing_uncleaned (1).csv\")\n","print(\"\\nCSV File Head:\")\n","print(df_csv.head())\n","\n","# Ingesting unstructured text data\n","df_txt = pd.read_csv(\"/content/drive/MyDrive/FDE LAB/LAB 1/dummy_text.txt\", delim_whitespace=True)\n","print(\"\\nText File Head:\")\n","print(df_txt.head())\n","\n","#Ingesting semi-structured JSON data (Flat JSON file and nested JSON file)\n","df_json_flat = pd.read_json(\"/content/drive/MyDrive/FDE LAB/LAB 1/normal_json.json\")\n","print(\"\\nNormal JSON File Head:\")\n","print(df_json_flat.head())\n","\n","\n","with open(\"/content/drive/MyDrive/FDE LAB/LAB 1/nested_json.json\") as f:\n","    nested_data = json.load(f)\n","df_json_nested = pd.json_normalize(nested_data)\n","print(\"\\nNested JSON File Head:\")\n","print(df_json_nested.head())\n"]}]}
+import pandas as pd
+import json
+#Ingesting Structure data in .xslx and .csv format
+df_excel = pd.read_excel("/content/drive/MyDrive/FDE LAB/LAB 1/Play_tennis_dataset.xlsx")
+print("\nExcel File Head:")
+print(df_excel.head())
+
+df_csv = pd.read_csv("/content/drive/MyDrive/FDE LAB/LAB 1/Housing_uncleaned (1).csv")
+print("\nCSV File Head:")
+print(df_csv.head())
+
+# Ingesting unstructured text data
+df_txt = pd.read_csv("/content/drive/MyDrive/FDE LAB/LAB 1/dummy_text.txt", delim_whitespace=True)
+print("\nText File Head:")
+print(df_txt.head())
+
+#Ingesting semi-structured JSON data (Flat JSON file and nested JSON file)
+df_json_flat = pd.read_json("/content/drive/MyDrive/FDE LAB/LAB 1/normal_json.json")
+print("\nNormal JSON File Head:")
+print(df_json_flat.head())
+
+
+with open("/content/drive/MyDrive/FDE LAB/LAB 1/nested_json.json") as f:
+    nested_data = json.load(f)
+df_json_nested = pd.json_normalize(nested_data)
+print("\nNested JSON File Head:")
+print(df_json_nested.head())
